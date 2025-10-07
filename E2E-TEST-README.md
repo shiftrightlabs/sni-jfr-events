@@ -366,7 +366,7 @@ Successful test output:
 
 ```
 [INFO] --- surefire:3.0.0:test (default-test) @ kafka-ssl-jfr ---
-[INFO] Running com.kafka.jfr.sni.KafkaJMCAgentE2ETest
+[INFO] Running io.github.shiftrightlabs.sni.jfr.KafkaJMCAgentE2ETest
 [INFO] [KAFKA-JMC] JMC Agent loaded successfully
 [INFO] [KAFKA-SSL] SSL Event: kafka-alias.test.local
 [INFO] Found 5 kafka.ssl.Handshake events

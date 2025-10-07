@@ -168,12 +168,12 @@ JMC Agent configuration in `kafka-ssl-jfr.xml`:
                 <field>
                     <name>sniHostname</name>
                     <expression>this.sslEngine</expression>
-                    <converter>com.kafka.jfr.sni.SNIHostnameExtractor</converter>
+                    <converter>io.github.shiftrightlabs.sni.jfr.SNIHostnameExtractor</converter>
                 </field>
                 <field>
                     <name>clientCertCN</name>
                     <expression>this.sslEngine</expression>
-                    <converter>com.kafka.jfr.sni.ClientCertificateCNExtractor</converter>
+                    <converter>io.github.shiftrightlabs.sni.jfr.ClientCertificateCNExtractor</converter>
                 </field>
                 <field>
                     <name>channelId</name>

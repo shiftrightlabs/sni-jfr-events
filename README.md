@@ -147,12 +147,12 @@ The `kafka-ssl-jfr.xml` file defines the JMC Agent instrumentation:
                 <field>
                     <name>sniHostname</name>
                     <expression>this.sslEngine</expression>
-                    <converter>com.kafka.jfr.sni.SNIHostnameExtractor</converter>
+                    <converter>io.github.shiftrightlabs.sni.jfr.SNIHostnameExtractor</converter>
                 </field>
                 <field>
                     <name>clientCertCN</name>
                     <expression>this.sslEngine</expression>
-                    <converter>com.kafka.jfr.sni.ClientCertificateCNExtractor</converter>
+                    <converter>io.github.shiftrightlabs.sni.jfr.ClientCertificateCNExtractor</converter>
                 </field>
                 <field>
                     <name>channelId</name>
@@ -346,7 +346,7 @@ mvn test
 
 ### Converter not found
 
-**Error**: `ClassNotFoundException: com.kafka.jfr.sni.SNIHostnameExtractor` or `ClassNotFoundException: com.kafka.jfr.sni.ClientCertificateCNExtractor`
+**Error**: `ClassNotFoundException: io.github.shiftrightlabs.sni.jfr.SNIHostnameExtractor` or `ClassNotFoundException: io.github.shiftrightlabs.sni.jfr.ClientCertificateCNExtractor`
 
 **Solution**: Ensure converter JAR is on classpath via `CLASSPATH` environment variable before starting Kafka
 

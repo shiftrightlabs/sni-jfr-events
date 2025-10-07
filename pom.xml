@@ -5,13 +5,14 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.kafka.jfr</groupId>
+    <groupId>io.github.shiftrightlabs</groupId>
     <artifactId>kafka-ssl-jfr</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>Kafka SSL JFR</name>
     <description>Custom converter for JMC Agent to capture SSL/TLS metadata (SNI, client certificates) from Kafka connections</description>
+    <url>https://github.com/shiftrightlabs/sni-jfr-events</url>
 
     <licenses>
         <license>

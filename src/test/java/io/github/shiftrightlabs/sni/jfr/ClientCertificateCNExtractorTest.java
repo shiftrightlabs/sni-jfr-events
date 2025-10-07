@@ -1,4 +1,4 @@
-package com.kafka.jfr.sni;
+package io.github.shiftrightlabs.sni.jfr;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

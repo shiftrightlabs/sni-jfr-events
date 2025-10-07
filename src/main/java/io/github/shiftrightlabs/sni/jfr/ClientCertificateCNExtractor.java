@@ -1,4 +1,4 @@
-package com.kafka.jfr.sni;
+package io.github.shiftrightlabs.sni.jfr;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLPeerUnverifiedException;
@@ -20,7 +20,7 @@ import java.security.cert.X509Certificate;
  * &lt;field&gt;
  *   &lt;name&gt;clientCertCN&lt;/name&gt;
  *   &lt;expression&gt;this.sslEngine&lt;/expression&gt;
- *   &lt;converter&gt;com.kafka.jfr.sni.ClientCertificateCNExtractor&lt;/converter&gt;
+ *   &lt;converter&gt;io.github.shiftrightlabs.sni.jfr.ClientCertificateCNExtractor&lt;/converter&gt;
  * &lt;/field&gt;
  * </pre>
  */

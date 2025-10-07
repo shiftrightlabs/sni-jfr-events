@@ -1,4 +1,4 @@
-package com.kafka.jfr.sni;
+package io.github.shiftrightlabs.sni.jfr;
 
 import javax.net.ssl.ExtendedSSLSession;
 import javax.net.ssl.SNIHostName;
@@ -19,7 +19,7 @@ import java.util.List;
  * &lt;field&gt;
  *   &lt;name&gt;sniHostname&lt;/name&gt;
  *   &lt;expression&gt;this.sslEngine&lt;/expression&gt;
- *   &lt;converter&gt;com.kafka.jfr.sni.SNIHostnameExtractor&lt;/converter&gt;
+ *   &lt;converter&gt;io.github.shiftrightlabs.sni.jfr.SNIHostnameExtractor&lt;/converter&gt;
  * &lt;/field&gt;
  * </pre>
  */
