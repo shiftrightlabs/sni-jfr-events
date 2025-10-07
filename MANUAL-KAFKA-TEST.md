@@ -235,7 +235,7 @@ jfr print --events kafka.ssl.Handshake kafka-ssl.jfr | grep clientCertCN | sort 
 
 ## Troubleshooting
 
-### Problem: ClassNotFoundException for SSLSessionSNIConverter
+### Problem: ClassNotFoundException for SNIHostnameExtractor or ClientCertificateCNExtractor
 
 **Cause:** Converter JAR not on classpath
 
