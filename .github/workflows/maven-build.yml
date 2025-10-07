@@ -41,7 +41,7 @@ jobs:
       run: |
         echo "Checking if converter JAR was created..."
         ls -la target/
-        if [ ! -f target/kafka-ssl-jfr-1.0.0.jar ]; then
+        if [ ! -f target/kafka-ssl-jfr-1.1.0.jar ]; then
           echo "Error: Converter JAR not found!"
           exit 1
         fi
