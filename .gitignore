@@ -53,3 +53,7 @@ kafka-sni-*.jfr
 *.bak
 *.swp
 *~
+
+# Docker test artifacts
+docker-test/ssl/
+docker-test/test-results/kafka-*-src/
