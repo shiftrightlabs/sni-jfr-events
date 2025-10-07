@@ -42,7 +42,7 @@ The `KafkaJMCAgentE2ETest` provides comprehensive end-to-end testing of the JMC 
 mvn clean package
 ```
 
-This creates `target/kafka-ssl-jfr-1.0.0.jar`
+This creates `target/kafka-ssl-jfr-1.1.0.jar`
 
 ### 2. JMC Agent JAR (Auto-Downloaded)
 
@@ -117,7 +117,7 @@ mvn test
 ## Test Execution Flow
 
 1. **Setup Phase** (`@BeforeAll`):
-   - Verify converter JAR exists at `target/kafka-ssl-jfr-1.0.0.jar`
+   - Verify converter JAR exists at `target/kafka-ssl-jfr-1.1.0.jar`
    - Verify JMC Agent JAR exists at `target/test-libs/jmc-agent.jar` (skip test if missing)
    - Generate SSL certificates using `keytool`:
      - Create CA certificate (CN=Test CA)

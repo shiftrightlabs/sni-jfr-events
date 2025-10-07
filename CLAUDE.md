@@ -55,7 +55,7 @@ JFR Event: sniHostname="broker1.kafka.example.com"
 # Build the converter JAR
 mvn clean package
 
-# Output location: target/kafka-ssl-jfr-1.0.0.jar
+# Output location: target/kafka-ssl-jfr-1.1.0.jar
 
 # Build without tests
 mvn clean package -DskipTests
@@ -71,7 +71,7 @@ mvn test -Dtest=KafkaJMCAgentE2ETest
 
 ### On Kafka Broker
 ```bash
-export CLASSPATH="/path/to/kafka-ssl-jfr-1.0.0.jar:$CLASSPATH"
+export CLASSPATH="/path/to/kafka-ssl-jfr-1.1.0.jar:$CLASSPATH"
 export KAFKA_OPTS="-javaagent:/path/to/jmc-agent.jar=/path/to/kafka-ssl-jfr.xml"
 bin/kafka-server-start.sh config/server.properties
 ```

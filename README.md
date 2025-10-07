@@ -49,7 +49,7 @@ Client SSL/TLS Connection → Kafka Broker
 mvn clean package
 ```
 
-Output: `target/kafka-ssl-jfr-1.0.0.jar`
+Output: `target/kafka-ssl-jfr-1.1.0.jar`
 
 ## Usage
 
@@ -66,7 +66,7 @@ mv agent-1.0.1.jar jmc-agent.jar
 Add the following to your Kafka startup script or `KAFKA_OPTS`:
 
 ```bash
-export CLASSPATH="/path/to/kafka-ssl-jfr-1.0.0.jar:$CLASSPATH"
+export CLASSPATH="/path/to/kafka-ssl-jfr-1.1.0.jar:$CLASSPATH"
 export KAFKA_OPTS="-javaagent:/path/to/jmc-agent.jar=/path/to/kafka-ssl-jfr.xml"
 
 bin/kafka-server-start.sh config/server.properties

@@ -119,7 +119,7 @@ ssl.endpoint.identification.algorithm=
 
 ```bash
 # Set CLASSPATH to include converter JAR
-export CLASSPATH="/path/to/kafka-ssl-jfr-1.0.0.jar:$CLASSPATH"
+export CLASSPATH="/path/to/kafka-ssl-jfr-1.1.0.jar:$CLASSPATH"
 
 # Set KAFKA_OPTS to load JMC Agent
 export KAFKA_OPTS="\
@@ -241,7 +241,7 @@ jfr print --events kafka.ssl.Handshake kafka-ssl.jfr | grep clientCertCN | sort 
 
 **Solution:** Ensure converter JAR is added to `CLASSPATH` environment variable before starting Kafka:
 ```bash
-export CLASSPATH="/path/to/kafka-ssl-jfr-1.0.0.jar:$CLASSPATH"
+export CLASSPATH="/path/to/kafka-ssl-jfr-1.1.0.jar:$CLASSPATH"
 ```
 
 ### Problem: No JFR events captured
