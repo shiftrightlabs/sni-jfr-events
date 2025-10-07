@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  JMC Agent configuration for capturing SSL/TLS metadata (SNI and client certificates) from Kafka connections.
+
+  Usage:
+    export CLASSPATH="/path/to/kafka-ssl-jfr-1.0.0.jar:$CLASSPATH"
+    java -javaagent:/path/to/jmc-agent.jar=kafka-ssl-jfr.xml \
+         kafka.Kafka config/server.properties
+
+  Requirements:
+    - JMC Agent JAR (from https://github.com/openjdk/jmc)
+    - This project's JAR (contains SSLSessionSNIConverter) on CLASSPATH
+    - Kafka broker with SSL enabled
+-->
+<jfragent>
+    <!-- Global configuration -->
+    <config>
+        <!-- Prefix for generated event classes -->
+        <classprefix>__KafkaSSL</classprefix>
+
+        <!-- Enable custom converters (required for SSLSessionSNIConverter) -->
+        <allowconverter>true</allowconverter>
+
+        <!-- Allow toString on objects (not strictly needed with custom converter) -->
+        <allowtostring>false</allowtostring>
+    </config>
+
+    <events>
+        <!-- Event: Kafka SSL Handshake -->
+        <event id="kafka.ssl.Handshake">
+            <label>Kafka SSL Handshake</label>
+            <description>Captures SSL/TLS metadata (SNI hostname and client certificate CN) from Kafka connections</description>
+            <path>kafka/ssl/handshake</path>
+
+            <!-- Capture stack trace for debugging connection sources -->
+            <stacktrace>true</stacktrace>
+
+            <!-- Instrument Kafka's SslTransportLayer -->
+            <class>org.apache.kafka.common.network.SslTransportLayer</class>
+
+            <!-- Capture when handshake completes successfully -->
+            <method>
+                <name>handshakeFinished</name>
+                <descriptor>()V</descriptor>
+            </method>
+
+            <!-- Capture at method entry (after handshake completes) -->
+            <location>ENTRY</location>
+
+            <!-- Fields to capture -->
+            <fields>
+                <!-- SNI hostname extracted from SSLEngine using custom converter -->
+                <field>
+                    <name>sniHostname</name>
+                    <description>Server Name Indication hostname sent by client</description>
+                    <expression>this.sslEngine</expression>
+                    <converter>com.kafka.jfr.sni.SSLSessionSNIConverter</converter>
+                </field>
+
+                <!-- Client certificate CN extracted from SSLEngine -->
+                <field>
+                    <name>clientCertCN</name>
+                    <description>Common Name from client certificate (requires client auth)</description>
+                    <expression>this.sslEngine</expression>
+                    <converter>com.kafka.jfr.sni.SSLSessionSNIConverter.convertClientCN(Ljavax/net/ssl/SSLEngine;)Ljava/lang/String;</converter>
+                </field>
+
+                <!-- Channel ID for correlation -->
+                <field>
+                    <name>channelId</name>
+                    <description>Kafka channel identifier</description>
+                    <expression>this.channelId</expression>
+                </field>
+            </fields>
+        </event>
+    </events>
+</jfragent>

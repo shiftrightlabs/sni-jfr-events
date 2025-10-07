@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        java-version: [17, 21]  # Test with multiple Java versions
+        java-version: [11, 17, 21]  # Test with multiple Java versions
 
     name: Build with Java ${{ matrix.java-version }}
 
@@ -37,27 +37,32 @@ jobs:
     - name: Package JAR
       run: mvn package
 
-    - name: Verify agent JAR
+    - name: Verify converter JAR
       run: |
-        echo "Checking if agent JAR was created..."
+        echo "Checking if converter JAR was created..."
         ls -la target/
-        if [ ! -f target/sni-jfr-agent-1.0.0.jar ]; then
-          echo "Error: Agent JAR not found!"
+        if [ ! -f target/kafka-ssl-jfr-1.0.0.jar ]; then
+          echo "Error: Converter JAR not found!"
           exit 1
         fi
-        echo "Agent JAR created successfully"
+        echo "Converter JAR created successfully"
 
-    - name: Check JAR manifest
+    - name: Verify JMC Agent downloaded
       run: |
-        echo "Verifying JAR manifest for agent attributes..."
-        unzip -p target/sni-jfr-agent-1.0.0.jar META-INF/MANIFEST.MF | grep -E "Premain-Class|Agent-Class"
+        echo "Checking if JMC Agent was downloaded..."
+        ls -la target/test-libs/
+        if [ ! -f target/test-libs/jmc-agent.jar ]; then
+          echo "Error: JMC Agent JAR not found!"
+          exit 1
+        fi
+        echo "JMC Agent JAR downloaded successfully"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
-      if: matrix.java-version == 17  # Only upload artifact from Java 17 build
+      if: matrix.java-version == 11  # Only upload artifact from Java 11 build
       with:
-        name: sni-jfr-agent
-        path: target/sni-jfr-agent-*.jar
+        name: kafka-ssl-jfr-converter
+        path: target/kafka-ssl-jfr-*.jar
         retention-days: 30
 
   code-quality:
@@ -68,10 +73,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 17
+    - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
-        java-version: 17
+        java-version: 11
         distribution: 'temurin'
         cache: maven
 
@@ -89,10 +94,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 17
+    - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
-        java-version: 17
+        java-version: 11
         distribution: 'temurin'
         cache: maven
 
