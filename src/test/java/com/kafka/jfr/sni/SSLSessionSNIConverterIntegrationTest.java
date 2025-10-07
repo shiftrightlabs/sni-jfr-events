@@ -26,7 +26,7 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration test that validates SSLSessionSNIConverter with real SSLEngine instances
+ * Integration test that validates SNI and client certificate extractors with real SSLEngine instances
  * performing actual TLS handshakes with SNI.
  */
 class SSLSessionSNIConverterIntegrationTest {
@@ -118,7 +118,7 @@ class SSLSessionSNIConverterIntegrationTest {
         SSLSession serverSession = serverEngine.getSession();
 
         // Use converter to extract SNI
-        String extractedSNI = SSLSessionSNIConverter.convert(serverSession);
+        String extractedSNI = SNIHostnameExtractor.convert(serverSession);
 
         // Assert: Verify SNI was captured correctly
         assertNotNull(extractedSNI, "SNI should be captured from server session");
@@ -152,7 +152,7 @@ class SSLSessionSNIConverterIntegrationTest {
         SSLSession serverSession = serverEngine.getSession();
 
         // Use converter to extract SNI
-        String extractedSNI = SSLSessionSNIConverter.convert(serverSession);
+        String extractedSNI = SNIHostnameExtractor.convert(serverSession);
 
         // Assert: No SNI should be present
         assertNull(extractedSNI, "SNI should be null when client doesn't send SNI");
@@ -182,7 +182,7 @@ class SSLSessionSNIConverterIntegrationTest {
         performHandshake(clientEngine, serverEngine);
 
         SSLSession serverSession = serverEngine.getSession();
-        String extractedSNI = SSLSessionSNIConverter.convert(serverSession);
+        String extractedSNI = SNIHostnameExtractor.convert(serverSession);
 
         // Assert: IDN should be preserved in ACE format
         assertNotNull(extractedSNI);
@@ -215,8 +215,8 @@ class SSLSessionSNIConverterIntegrationTest {
         SSLSession serverSession = serverEngine.getSession();
 
         // Use converters to extract both SNI and client cert CN
-        String extractedSNI = SSLSessionSNIConverter.convert(serverSession);
-        String extractedClientCN = SSLSessionSNIConverter.convertClientCN(serverSession);
+        String extractedSNI = SNIHostnameExtractor.convert(serverSession);
+        String extractedClientCN = ClientCertificateCNExtractor.convert(serverSession);
 
         // Assert: Both SNI and client CN should be captured
         assertNotNull(extractedSNI, "SNI should be captured from server session");
@@ -253,8 +253,8 @@ class SSLSessionSNIConverterIntegrationTest {
         SSLSession serverSession = serverEngine.getSession();
 
         // Extract both SNI and client CN
-        String extractedSNI = SSLSessionSNIConverter.convert(serverSession);
-        String extractedClientCN = SSLSessionSNIConverter.convertClientCN(serverSession);
+        String extractedSNI = SNIHostnameExtractor.convert(serverSession);
+        String extractedClientCN = ClientCertificateCNExtractor.convert(serverSession);
 
         // Assert: SNI should be present, but no client CN (no client auth)
         assertNotNull(extractedSNI, "SNI should be captured");

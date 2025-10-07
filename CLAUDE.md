@@ -10,14 +10,15 @@ This project provides a **custom converter for JMC Agent** that captures SSL/TLS
 
 ## Current Architecture (JMC Agent + Converter)
 
-The project consists of only **1 Java file**:
+The project consists of **2 specialized converter classes** following single responsibility principle:
 
-1. **SSLSessionSNIConverter.java** - Custom converter that extracts SNI hostname and client certificate CN from `SSLEngine` objects
+1. **SNIHostnameExtractor.java** - Extracts SNI (Server Name Indication) hostname from `SSLEngine` objects
+2. **ClientCertificateCNExtractor.java** - Extracts Common Name (CN) from client X.509 certificates
 
 The instrumentation is defined declaratively in:
 - **kafka-ssl-jfr.xml** - JMC Agent configuration file
 
-The converter runs on the server (broker) and extracts SNI values from incoming client connections.
+The converters run on the server (broker) and extract metadata from incoming client connections.
 
 ## How SNI Capture Works
 
@@ -39,7 +40,7 @@ Broker's SslTransportLayer.handshakeFinished() called
         ↓
 Captures this.sslEngine field
         ↓
-SSLSessionSNIConverter.convert(sslEngine) called
+SNIHostnameExtractor.convert(sslEngine) called
         ↓
 ExtendedSSLSession.getRequestedServerNames()
         ↓
@@ -75,7 +76,7 @@ export KAFKA_OPTS="-javaagent:/path/to/jmc-agent.jar=/path/to/kafka-ssl-jfr.xml"
 bin/kafka-server-start.sh config/server.properties
 ```
 
-**Important:** The converter JAR must be on the classpath (via `CLASSPATH` env var) so JMC Agent can find the `SSLSessionSNIConverter` class.
+**Important:** The converter JAR must be on the classpath (via `CLASSPATH` env var) so JMC Agent can find the converter classes (`SNIHostnameExtractor` and `ClientCertificateCNExtractor`).
 
 ### JFR Analysis Commands
 
@@ -104,7 +105,7 @@ jcmd <broker-pid> JFR.dump name=agent-main filename=kafka-ssl.jfr
 
 1. **JMC Agent Initialization** (external to this project)
    - Parses `kafka-ssl-jfr.xml` configuration
-   - Finds `SSLSessionSNIConverter` class on classpath
+   - Finds converter classes (`SNIHostnameExtractor`, `ClientCertificateCNExtractor`) on classpath
    - Instruments `org.apache.kafka.common.network.SslTransportLayer`
    - Creates JFR event type `kafka.ssl.Handshake`
 
@@ -127,7 +128,7 @@ jcmd <broker-pid> JFR.dump name=agent-main filename=kafka-ssl.jfr
                                         ↓
                       Captures this.sslEngine and this.channelId
                                         ↓
-                      SSLSessionSNIConverter.convert(sslEngine)
+                      SNIHostnameExtractor.convert(sslEngine)
                                         ↓
                       engine.getSession() → ExtendedSSLSession
                                         ↓
@@ -167,12 +168,12 @@ JMC Agent configuration in `kafka-ssl-jfr.xml`:
                 <field>
                     <name>sniHostname</name>
                     <expression>this.sslEngine</expression>
-                    <converter>com.kafka.jfr.sni.SSLSessionSNIConverter</converter>
+                    <converter>com.kafka.jfr.sni.SNIHostnameExtractor</converter>
                 </field>
                 <field>
                     <name>clientCertCN</name>
                     <expression>this.sslEngine</expression>
-                    <converter>com.kafka.jfr.sni.SSLSessionSNIConverter.convertClientCN(Ljavax/net/ssl/SSLEngine;)Ljava/lang/String;</converter>
+                    <converter>com.kafka.jfr.sni.ClientCertificateCNExtractor</converter>
                 </field>
                 <field>
                     <name>channelId</name>
@@ -208,7 +209,10 @@ Method calls must be moved into the converter implementation.
 
 ### Converter Design
 
-The converter provides two main converter methods with overloads:
+The project follows **Single Responsibility Principle** with two focused converter classes:
+
+#### SNIHostnameExtractor
+Extracts SNI hostname from SSL/TLS sessions:
 
 ```java
 // Called by JMC Agent (expression captures SSLEngine)
@@ -234,14 +238,18 @@ public static String convert(SSLSession session) {
 
     return null;
 }
+```
 
-// Extract client certificate CN (for client authentication)
-public static String convertClientCN(SSLEngine engine) {
+#### ClientCertificateCNExtractor
+Extracts Common Name from client X.509 certificates (for client authentication):
+
+```java
+public static String convert(SSLEngine engine) {
     if (engine == null) return null;
-    return convertClientCN(engine.getSession());
+    return convert(engine.getSession());
 }
 
-public static String convertClientCN(SSLSession session) {
+public static String convert(SSLSession session) {
     if (session == null) return null;
 
     try {
@@ -259,7 +267,7 @@ public static String convertClientCN(SSLSession session) {
 ```
 
 ### Thread Safety
-- Converter is stateless and thread-safe
+- Both converters are stateless and thread-safe
 - JFR events are thread-safe by design
 - Handles concurrent client connections safely
 
@@ -267,26 +275,29 @@ public static String convertClientCN(SSLSession session) {
 All converter logic is wrapped in try-catch that returns `null` on error. This ensures broker operations are never disrupted by converter failures.
 
 ### Performance Optimizations
-- Converter performs simple type checking and field access
+- Converters perform simple type checking and field access
 - No reflection or complex operations
 - Returns early on null/invalid inputs
-- JMC Agent only calls converter when event is enabled
+- JMC Agent only calls converters when event is enabled
+- Minimal memory allocation and CPU overhead
 
 ## Testing
 
 The project includes three test suites:
 
-### 1. Unit Tests (SSLSessionSNIConverterTest.java)
-- Tests converter with mocked SSLSession objects
+### 1. Unit Tests
+- **SNIHostnameExtractorTest.java** - Tests SNI extraction with mocked SSLSession objects
+- **ClientCertificateCNExtractorTest.java** - Tests client certificate CN extraction with mocked objects
 - Validates null/empty handling
 - Tests international domain names
 - Tests multiple SNI values
 
 ### 2. Integration Tests (SSLSessionSNIConverterIntegrationTest.java)
-- Tests converter with real SSL/TLS handshakes
+- Tests both converters with real SSL/TLS handshakes
 - Uses BouncyCastle to generate self-signed certificates
-- Validates converter works with actual SSLEngine sessions
+- Validates converters work with actual SSLEngine sessions
 - Tests both with and without SNI
+- Tests client certificate authentication
 
 ### 3. E2E Tests (KafkaJMCAgentE2ETest.java)
 - Full integration test with Kafka broker in Docker
@@ -300,8 +311,11 @@ Run tests with:
 # All tests
 mvn test
 
-# Unit + integration only
-mvn test -Dtest=SSLSessionSNIConverter*Test
+# Unit tests only
+mvn test -Dtest=*ExtractorTest
+
+# Integration test only
+mvn test -Dtest=SSLSessionSNIConverterIntegrationTest
 
 # E2E only
 mvn test -Dtest=KafkaJMCAgentE2ETest
@@ -310,8 +324,10 @@ mvn test -Dtest=KafkaJMCAgentE2ETest
 ## Common Development Tasks
 
 ### Modifying Converter Logic
-1. Update `SSLSessionSNIConverter.convert()` methods
-2. Add/update unit tests in `SSLSessionSNIConverterTest`
+1. Update appropriate converter class:
+   - `SNIHostnameExtractor.java` for SNI extraction logic
+   - `ClientCertificateCNExtractor.java` for client certificate CN logic
+2. Add/update unit tests in corresponding test files
 3. Verify integration tests still pass
 4. Optionally run E2E test to validate end-to-end
 

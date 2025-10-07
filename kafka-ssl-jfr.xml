@@ -54,7 +54,7 @@
                     <name>sniHostname</name>
                     <description>Server Name Indication hostname sent by client</description>
                     <expression>this.sslEngine</expression>
-                    <converter>com.kafka.jfr.sni.SSLSessionSNIConverter</converter>
+                    <converter>com.kafka.jfr.sni.SNIHostnameExtractor</converter>
                 </field>
 
                 <!-- Client certificate CN extracted from SSLEngine -->
@@ -62,7 +62,7 @@
                     <name>clientCertCN</name>
                     <description>Common Name from client certificate (requires client auth)</description>
                     <expression>this.sslEngine</expression>
-                    <converter>com.kafka.jfr.sni.SSLSessionSNIConverter.convertClientCN(Ljavax/net/ssl/SSLEngine;)Ljava/lang/String;</converter>
+                    <converter>com.kafka.jfr.sni.ClientCertificateCNExtractor</converter>
                 </field>
 
                 <!-- Channel ID for correlation -->
