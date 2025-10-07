@@ -50,7 +50,7 @@ public class KafkaJMCAgentE2ETest {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaJMCAgentE2ETest.class);
 
     private static final String KAFKA_IMAGE = "confluentinc/cp-kafka:7.6.7";
-    private static final String CONVERTER_JAR_PATH = "target/kafka-ssl-jfr-1.0.0.jar";
+    private static final String CONVERTER_JAR_PATH = "target/kafka-ssl-jfr-1.1.0.jar";
     private static final String JMC_AGENT_JAR_PATH = "target/test-libs/jmc-agent.jar";
 
     // Two-hostname approach for SNI testing
