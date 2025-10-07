@@ -1,102 +1,48 @@
 package com.kafka.jfr.sni;
 
-import javax.net.ssl.ExtendedSSLSession;
-import javax.net.ssl.SNIHostName;
-import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
+import javax.security.auth.x500.X500Principal;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.util.List;
-import javax.security.auth.x500.X500Principal;
 
 /**
- * JMC Agent converter to extract SNI hostname and client certificate CN from SSLSession.
+ * JMC Agent converter that extracts the Common Name (CN) from client certificates.
  *
- * This converter is used by JMC Agent to transform SSLEngine/SSLSession objects
- * into Strings containing the SNI hostname and client certificate common name.
+ * This converter is specifically designed to extract the CN field from the subject
+ * Distinguished Name (DN) of client X.509 certificates during mutual TLS authentication.
+ * It follows the single responsibility principle by focusing exclusively on client
+ * certificate CN extraction.
  *
  * Usage in JMC Agent XML:
  * <pre>
  * &lt;field&gt;
- *   &lt;name&gt;sniHostname&lt;/name&gt;
- *   &lt;expression&gt;this.sslEngine&lt;/expression&gt;
- *   &lt;converter&gt;com.kafka.jfr.sni.SSLSessionSNIConverter&lt;/converter&gt;
- * &lt;/field&gt;
- * &lt;field&gt;
  *   &lt;name&gt;clientCertCN&lt;/name&gt;
  *   &lt;expression&gt;this.sslEngine&lt;/expression&gt;
- *   &lt;converter&gt;com.kafka.jfr.sni.SSLSessionSNIConverter#convertClientCN&lt;/converter&gt;
+ *   &lt;converter&gt;com.kafka.jfr.sni.ClientCertificateCNExtractor&lt;/converter&gt;
  * &lt;/field&gt;
  * </pre>
  */
-public final class SSLSessionSNIConverter {
+public final class ClientCertificateCNExtractor {
+
+    // Private constructor to prevent instantiation
+    private ClientCertificateCNExtractor() {
+        throw new AssertionError("Utility class - do not instantiate");
+    }
 
     /**
-     * Converts an SSLEngine to the SNI hostname string.
-     * JMC Agent calls this when expression returns SSLEngine.
+     * Converts an SSLEngine to the client certificate CN (Common Name).
+     * JMC Agent calls this when the expression returns SSLEngine.
      *
-     * @param engine the SSLEngine from which to extract SNI
-     * @return the SNI hostname, or null if not available
+     * @param engine the SSLEngine from which to extract client certificate CN
+     * @return the client certificate CN, or null if not available
      */
     public static String convert(SSLEngine engine) {
         if (engine == null) {
             return null;
         }
         return convert(engine.getSession());
-    }
-
-    /**
-     * Converts an SSLSession to the SNI hostname string.
-     *
-     * @param session the SSLSession from which to extract SNI
-     * @return the SNI hostname, or null if not available
-     */
-    public static String convert(SSLSession session) {
-        if (session == null) {
-            return null;
-        }
-
-        try {
-            // Cast to ExtendedSSLSession to access SNI information
-            if (!(session instanceof ExtendedSSLSession)) {
-                return null;
-            }
-
-            ExtendedSSLSession extendedSession = (ExtendedSSLSession) session;
-            List<SNIServerName> serverNames = extendedSession.getRequestedServerNames();
-
-            if (serverNames == null || serverNames.isEmpty()) {
-                return null;
-            }
-
-            // Extract the first SNI hostname (typically there's only one)
-            SNIServerName serverName = serverNames.get(0);
-            if (serverName instanceof SNIHostName) {
-                return ((SNIHostName) serverName).getAsciiName();
-            }
-
-            return null;
-        } catch (Exception e) {
-            // Never throw exceptions from converters - they're called at event sites
-            // Return null if anything goes wrong
-            return null;
-        }
-    }
-
-    /**
-     * Converts an SSLEngine to the client certificate CN (Common Name).
-     * JMC Agent calls this when using convertClientCN converter method.
-     *
-     * @param engine the SSLEngine from which to extract client certificate CN
-     * @return the client certificate CN, or null if not available
-     */
-    public static String convertClientCN(SSLEngine engine) {
-        if (engine == null) {
-            return null;
-        }
-        return convertClientCN(engine.getSession());
     }
 
     /**
@@ -107,7 +53,7 @@ public final class SSLSessionSNIConverter {
      * @param session the SSLSession from which to extract client certificate CN
      * @return the client certificate CN, or null if not available
      */
-    public static String convertClientCN(SSLSession session) {
+    public static String convert(SSLSession session) {
         if (session == null) {
             return null;
         }
