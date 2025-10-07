@@ -15,7 +15,7 @@ The `KafkaJMCAgentE2ETest` provides comprehensive end-to-end testing of the JMC 
 │  │  Container    │         │                              │  │
 │  └───────────────┘         │  - SSL Listener on :9093     │  │
 │                            │  - JMC Agent loaded          │  │
-│                            │  - Converter on classpath    │  │
+│                            │  - Extractors on classpath   │  │
 │  ┌───────────────┐         │  - JFR recording enabled     │  │
 │  │  Producer     │────────►│                              │  │
 │  │  Container    │         │  Hostnames:                  │  │
@@ -198,7 +198,7 @@ CLASSPATH=/agent/kafka-ssl-jfr.jar
 
 **Files in Container:**
 - `/agent/jmc-agent.jar` - JMC Agent
-- `/agent/kafka-ssl-jfr.jar` - Our converter (on classpath)
+- `/agent/kafka-ssl-jfr.jar` - Our extractor classes (on classpath)
 - `/agent/kafka-ssl-jfr.xml` - JMC Agent configuration
 
 ## Troubleshooting
@@ -248,7 +248,7 @@ docker logs <container-id>
 **Possible causes:**
 
 1. **JMC Agent not loaded:** Check Kafka logs for agent initialization
-2. **Converter class not found:** Verify classpath includes converter JAR
+2. **Extractor classes not found:** Verify classpath includes converter JAR
 3. **XML config incorrect:** Verify `kafka-ssl-jfr.xml` syntax
 4. **No SSL connections:** Producer not using SSL protocol
 5. **SNI not sent:** Client not using hostname (using IP instead)
