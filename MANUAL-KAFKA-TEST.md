@@ -121,10 +121,8 @@ ssl.endpoint.identification.algorithm=
 # Set CLASSPATH to include converter JAR
 export CLASSPATH="/path/to/kafka-ssl-jfr-1.1.0.jar:$CLASSPATH"
 
-# Set KAFKA_OPTS to load JMC Agent
-export KAFKA_OPTS="\
-  -javaagent:/path/to/jmc-agent.jar=/path/to/kafka-ssl-jfr.xml \
-  -XX:StartFlightRecording=filename=kafka-ssl.jfr,dumponexit=true"
+# Set KAFKA_OPTS to load JMC Agent and start JFR recording
+export KAFKA_OPTS="-XX:StartFlightRecording=name=SSLCapture,filename=/path/to/kafka-ssl.jfr,maxsize=100m,dumponexit=true -javaagent:/path/to/jmc-agent.jar=/path/to/kafka-ssl-jfr.xml"
 
 # Start Kafka broker
 bin/kafka-server-start.sh config/server.properties
@@ -133,7 +131,7 @@ bin/kafka-server-start.sh config/server.properties
 **Expected output:**
 - Broker starts successfully
 - No errors about JMC Agent or converter class not found
-- JFR recording starts: `Started recording 1. The result will be written to: kafka-ssl.jfr`
+- JFR recording starts: `Started recording 1. Name SSLCapture...`
 
 ## Step 4: Connect Kafka Client with SNI and Client Certificate
 
@@ -176,12 +174,17 @@ echo "test-key:test-value" | bin/kafka-console-producer.sh \
 
 ## Step 5: Verify JFR Events
 
-After sending messages, stop the broker (this triggers JFR dump).
-
-View captured SSL handshake events:
+You can dump JFR events while the broker is running or wait for shutdown:
 
 ```bash
-jfr print --events kafka.ssl.Handshake kafka-ssl.jfr
+# Option 1: Dump while broker is running
+jcmd <broker-pid> JFR.dump name=SSLCapture filename=/path/to/kafka-ssl-dump.jfr
+
+# Option 2: Stop broker (triggers automatic dump via dumponexit=true)
+# The file will be written to the path specified in KAFKA_OPTS
+
+# View captured SSL handshake events
+jfr print --events kafka.ssl.Handshake /path/to/kafka-ssl.jfr
 ```
 
 **Expected output:**
@@ -218,19 +221,19 @@ kafka.ssl.Handshake {
 Export to JSON for analysis:
 
 ```bash
-jfr print --json --events kafka.ssl.Handshake kafka-ssl.jfr > ssl-events.json
+jfr print --json --events kafka.ssl.Handshake /path/to/kafka-ssl.jfr > ssl-events.json
 ```
 
 Count unique SNI values:
 
 ```bash
-jfr print --events kafka.ssl.Handshake kafka-ssl.jfr | grep sniHostname | sort | uniq -c
+jfr print --events kafka.ssl.Handshake /path/to/kafka-ssl.jfr | grep sniHostname | sort | uniq -c
 ```
 
 Count unique client certificates:
 
 ```bash
-jfr print --events kafka.ssl.Handshake kafka-ssl.jfr | grep clientCertCN | sort | uniq -c
+jfr print --events kafka.ssl.Handshake /path/to/kafka-ssl.jfr | grep clientCertCN | sort | uniq -c
 ```
 
 ## Troubleshooting
@@ -331,7 +334,7 @@ Compare to `-Djavax.net.debug=ssl`: **30-50% overhead**
 ## Cleanup
 
 ```bash
-rm kafka-ssl.jfr
+rm /path/to/kafka-ssl.jfr
 rm ca.keystore.jks kafka.keystore.jks client.keystore.jks kafka.truststore.jks
 rm ca-cert.pem server-cert.pem client-cert.pem server.csr client.csr
 sudo sed -i '/kafka-broker.test.local/d' /etc/hosts

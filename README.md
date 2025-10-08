@@ -67,7 +67,7 @@ Add the following to your Kafka startup script or `KAFKA_OPTS`:
 
 ```bash
 export CLASSPATH="/path/to/kafka-ssl-jfr-1.1.0.jar:$CLASSPATH"
-export KAFKA_OPTS="-javaagent:/path/to/jmc-agent.jar=/path/to/kafka-ssl-jfr.xml"
+export KAFKA_OPTS="-XX:StartFlightRecording=name=SSLCapture,filename=/path/to/kafka-ssl.jfr,maxsize=100m,dumponexit=true -javaagent:/path/to/jmc-agent.jar=/path/to/kafka-ssl-jfr.xml"
 
 bin/kafka-server-start.sh config/server.properties
 ```
@@ -87,17 +87,18 @@ When the broker starts, JMC Agent will:
 After clients connect, view the captured SNI events:
 
 ```bash
-# View all SSL handshake events
-jfr print --events kafka.ssl.Handshake /path/to/recording.jfr
-
-# Export to JSON
-jfr print --json --events kafka.ssl.Handshake /path/to/recording.jfr > ssl-events.json
-
 # Check active recording
 jcmd <broker-pid> JFR.check
 
-# Dump recording from running broker
-jcmd <broker-pid> JFR.dump name=agent-main filename=kafka-ssl.jfr
+# Dump recording from running broker (optional - only if you need events before shutdown)
+jcmd <broker-pid> JFR.dump name=SSLCapture filename=/path/to/kafka-ssl-dump.jfr
+
+# After broker shutdown, the JFR file is written automatically (dumponexit=true)
+# View all SSL handshake events
+jfr print --events kafka.ssl.Handshake /path/to/kafka-ssl.jfr
+
+# Export to JSON
+jfr print --json --events kafka.ssl.Handshake /path/to/kafka-ssl.jfr > ssl-events.json
 ```
 
 ### Example Event Output
